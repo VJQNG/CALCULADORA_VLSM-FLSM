@@ -86,7 +86,7 @@ class ventana_vlsm{
 				potencia = (int) Math.pow(2, n);
 				if(potencia >= req_host){
 					System.out.println(potencia);
-					n = 0;
+					
 					break;
 				}else{
 					n += 1;
@@ -103,8 +103,6 @@ class ventana_vlsm{
 			}else if(octeto_4.contains(nuevo_prefijo)){
 				octeto_cambio = 4;
 			}
-			System.out.println("Nuevo prefijo /" + nuevo_prefijo);
-			System.out.println("Octeto de cambio: " + octeto_cambio);
 
 			// Saltos
 			int saltos = 0;
@@ -118,7 +116,7 @@ class ventana_vlsm{
 				saltos = potencia;
 			}
 			
-			System.out.println("Saltos: " + saltos);
+			
 
 			// nueva mascara ocupando los rangos
 			List<Integer> nueva_mascara = new ArrayList<>();;
@@ -127,14 +125,50 @@ class ventana_vlsm{
 			}else if(octeto_cambio == 3){
 				nueva_mascara = new ArrayList<>(Arrays.asList(255, 255, 256-saltos, 0));
 			}else if(octeto_cambio == 4){
-				nueva_mascara = new ArrayList<>(Arrays.asList(255, 255, 255, 256-saltos));
+				if(n > 2){
+					nueva_mascara = new ArrayList<>(Arrays.asList(255, 255, 255, 256-saltos));
+				}else{
+					saltos = 4;
+					nuevo_prefijo = 30;
+					nueva_mascara = new ArrayList<>(Arrays.asList(255, 255, 255, 252));
+				}
+				
 			}
+			System.out.println("Octeto de cambio: " + octeto_cambio);
+			System.out.println(nueva_mascara+"/"+nuevo_prefijo);
 			
-			System.out.println(nueva_mascara);
-
 			// mostrar los saltos en el octeto de cambio.
-
-
+			// System.out.println(ip);
+			if(octeto_cambio == 2){
+				for(int i = 0; i < req_subred; i++){
+					System.out.println(ip);
+					ip.set(1, ip.get(1) + saltos);
+					
+				}
+			}else if(octeto_cambio == 3){
+				for(int i = 0; i < req_subred; i++){
+					System.out.println(ip);
+					ip.set(2, ip.get(2) + saltos);
+					
+				}
+			}else if(octeto_cambio == 4){
+				for(int i = 0; i < req_subred; i++){
+					
+					if(ip.get(3) < 256){
+						System.out.println(ip);
+						
+						ip.set(3, ip.get(3) + saltos);
+						
+					}else{
+						ip.set(3, 0);
+						int suma = ip.get(2) + 1;
+						ip.set(2, suma);
+						
+						//System.out.println(ip);
+						
+					}
+				}
+			}
 		}
 
 
@@ -165,7 +199,7 @@ public class main{
 		String requisitos;
 		int sel;
 		do{
-			System.out.println("0-salir\n1-calcular vlsm\n2-calcular flsm");
+			System.out.println("0-salir\n1-calcular vlsm\n");
 			sel = entra.nextInt();
 			switch (sel){
 				case 1:
@@ -182,23 +216,8 @@ public class main{
 					ventana_vlsm operar = new ventana_vlsm();
 					operar.calcular(VLSM);
 					break;
-				case 2:
-					System.out.println("FLSM");
-					System.out.println("Ingresando datos...");
-					System.out.println("IP(A.B.C.D): ");
-					ip = entra.next();
-					entra.nextLine();
-					System.out.println("PREFIJO(#): ");
-					prefijo = entra.nextInt();
-					entra.nextLine();
-					System.out.println("REQUISITOS(#subredes): ");
-					requisitos = entra.next();
-					RedRequisitos FLSM = new RedRequisitos(ip, prefijo, requisitos);
-					
-					break;
 			}
-			
-
 		}while(sel != 0);
+		System.out.println("Gracias por usar la calculadora");
 	}
 }
