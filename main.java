@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.Comparator;
 import java.util.Scanner;
 
 class RedRequisitos{
@@ -60,11 +63,88 @@ class ventana_vlsm{
 		int prefijo = req.m_prefijo();
 		List<Integer> requ = req.m_requisitos();
 		List<List<Integer>> requisitos = new ArrayList<>();
-        for(int a = 0; a < requ.size(); a+=2){
+        for(int a = 0; a < requ.size()-1; a+=2){
             List<Integer> es = new ArrayList<>(Arrays.asList(requ.get(a), requ.get(a+1)));
             requisitos.add(es);
 		}
-        System.out.println(requisitos);
+        // Acomodar los requisitos de mayor a menor segun los hosts.
+		requisitos.sort(Comparator.comparingInt((List<Integer> list) -> list.get(1)).reversed());
+		System.out.println(requisitos);
+
+		// rangos de octetos para usarlos en varios calculos.
+		List<Integer> octeto_2 = IntStream.range(9, 17).boxed().collect(Collectors.toList());// 9-16
+		List<Integer> octeto_3 = IntStream.range(17, 25).boxed().collect(Collectors.toList());// 17-24
+		List<Integer> octeto_4 = IntStream.range(25, 33).boxed().collect(Collectors.toList());// 25-32
+
+		// Encontrar 2^n >= #host con cada requisito.
+		for(int a = 0; a < requisitos.size(); a++){
+			int req_subred = requisitos.get(a).get(0);
+			int req_host = requisitos.get(a).get(1);
+			int n = 0;
+			int potencia;
+			while(true){
+				potencia = (int) Math.pow(2, n);
+				if(potencia >= req_host){
+					System.out.println(potencia);
+					n = 0;
+					break;
+				}else{
+					n += 1;
+				}
+			}
+
+			// Encontrar el nuevo prefijo y octeto de cambio(desde el 2, el primer octeto no se ocupa).
+			int nuevo_prefijo = 32 - n;
+			int octeto_cambio = 0;
+			if(octeto_2.contains(nuevo_prefijo)){
+				octeto_cambio = 2;
+			}else if(octeto_3.contains(nuevo_prefijo)){
+				octeto_cambio = 3;
+			}else if(octeto_4.contains(nuevo_prefijo)){
+				octeto_cambio = 4;
+			}
+			System.out.println("Nuevo prefijo /" + nuevo_prefijo);
+			System.out.println("Octeto de cambio: " + octeto_cambio);
+
+			// Saltos
+			int saltos = 0;
+			if(octeto_cambio == 2){
+				int op2 = n - 16;
+				saltos = (int) Math.pow(2, op2);
+			}else if(octeto_cambio == 3){
+				int op3 = n - 8;
+				saltos = (int) Math.pow(2, op3);
+			}else if(octeto_cambio == 4){
+				saltos = potencia;
+			}
+			
+			System.out.println("Saltos: " + saltos);
+
+			// nueva mascara ocupando los rangos
+			List<Integer> nueva_mascara = new ArrayList<>();;
+			if(octeto_cambio == 2){
+				nueva_mascara = new ArrayList<>(Arrays.asList(255, 256-saltos, 0, 0)); 
+			}else if(octeto_cambio == 3){
+				nueva_mascara = new ArrayList<>(Arrays.asList(255, 255, 256-saltos, 0));
+			}else if(octeto_cambio == 4){
+				nueva_mascara = new ArrayList<>(Arrays.asList(255, 255, 255, 256-saltos));
+			}
+			
+			System.out.println(nueva_mascara);
+
+			// mostrar los saltos en el octeto de cambio.
+
+
+		}
+
+
+
+
+
+
+
+
+
 		System.out.println("");
 	}
 }
@@ -101,8 +181,6 @@ public class main{
 					RedRequisitos VLSM = new RedRequisitos(ip, prefijo, requisitos);
 					ventana_vlsm operar = new ventana_vlsm();
 					operar.calcular(VLSM);
-					
-					
 					break;
 				case 2:
 					System.out.println("FLSM");
